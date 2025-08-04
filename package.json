@@ -1,5 +1,5 @@
 {
-  "name": "tkd-backend",
+  "name": "tkd-api",
   "version": "1.0.0",
   "type": "module",
   "main": "index.js",
