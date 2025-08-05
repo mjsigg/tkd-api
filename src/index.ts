@@ -1,8 +1,9 @@
-import express from 'express';
-import { Pool } from 'pg';
-import dotenv from 'dotenv';
-import authRoutes from './routes/auth.js';
-import { requireAuth, AuthRequest } from './middleware/authMiddleware.js';
+import express from "express";
+import { Pool } from "pg";
+import dotenv from "dotenv";
+import authRoutes from "./routes/auth.js";
+import paymentsRoutes from "./routes/payments.js";
+import { requireAuth, AuthRequest } from "./middleware/authMiddleware.js";
 
 dotenv.config();
 
@@ -14,34 +15,39 @@ app.use(express.json());
 export const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
   ssl: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
-app.get('/health', async (req, res) => {
+app.get("/health", async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
-    res.json({ 
-      status: 'healthy', 
-      database: 'connected',
-      timestamp: result.rows[0].now 
+    const result = await pool.query("SELECT NOW()");
+    res.json({
+      status: "healthy",
+      database: "connected",
+      timestamp: result.rows[0].now,
     });
   } catch (error) {
-    console.error('Database connection error:', error);
-    res.status(500).json({ 
-      status: 'error', 
-      database: 'disconnected',
-      error: error instanceof Error ? error.message : 'Unknown error'
+    console.error("Database connection error:", error);
+    res.status(500).json({
+      status: "error",
+      database: "disconnected",
+      error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 });
 
 // Mount auth routes
-app.use('/auth', authRoutes);
+app.use("/auth", authRoutes);
+
+// Mount payment routes
+app.use("/payments", paymentsRoutes);
 
 // Test protected route
-app.get('/protected', requireAuth, (req: AuthRequest, res) => {
-  res.json({ message: `Hello ${req.user?.email}! You are logged in as ${req.user?.role}` });
+app.get("/protected", requireAuth, (req: AuthRequest, res) => {
+  res.json({
+    message: `Hello ${req.user?.email}! You are logged in as ${req.user?.role}`,
+  });
 });
 
 app.listen(port, () => {
